@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="plugin" group="system" method="upgrade">
+    <name>plg_system_bale_chat</name>
+    <author>Maad Danesh Pazhohan Institute</author>
+    <creationDate>May 2026</creationDate>
+    <copyright>Copyright (C) 2026 Maad Danesh Pazhohan. All rights reserved.</copyright>
+    <license>GNU General Public License version 2 or later</license>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_BALE_CHAT_XML_DESCRIPTION</description>
+
+    <!--
+        Joomla 6.x system plugin
+        Integrates Bale Messenger live-support widget with Telegram fallback.
+        PHP 8.2+ required.
+    -->
+    <namespace path="src">Joomla\Plugin\System\BaleChat</namespace>
+
+    <files>
+        <folder plugin="bale_chat">services</folder>
+        <folder>src</folder>
+        <folder>language</folder>
+    </files>
+
+    <media destination="plg_system_bale_chat" folder="media">
+        <folder>js</folder>
+    </media>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/plg_system_bale_chat.ini</language>
+        <language tag="fa-IR">fa-IR/plg_system_bale_chat.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+
+            <!-- ── General ──────────────────────────────────────── -->
+            <fieldset name="basic" label="PLG_SYSTEM_BALE_CHAT_FIELDSET_GENERAL">
+
+                <field
+                    name="primary_service"
+                    type="list"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_PRIMARY_SERVICE_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_PRIMARY_SERVICE_DESC"
+                    default="bale"
+                    required="true"
+                >
+                    <option value="bale">Bale Messenger</option>
+                    <option value="telegram">Telegram</option>
+                </field>
+
+                <field
+                    name="fallback_timeout"
+                    type="number"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_TIMEOUT_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_TIMEOUT_DESC"
+                    default="4000"
+                    min="1000"
+                    max="10000"
+                    step="500"
+                    filter="integer"
+                />
+
+            </fieldset>
+
+            <!-- ── Bale ──────────────────────────────────────────── -->
+            <fieldset name="bale" label="PLG_SYSTEM_BALE_CHAT_FIELDSET_BALE">
+
+                <field
+                    name="bale_bot_username"
+                    type="text"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_BALE_USERNAME_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_BALE_USERNAME_DESC"
+                    hint="my_support_bot"
+                    filter="string"
+                />
+
+            </fieldset>
+
+            <!-- ── Telegram ──────────────────────────────────────── -->
+            <fieldset name="telegram" label="PLG_SYSTEM_BALE_CHAT_FIELDSET_TELEGRAM">
+
+                <field
+                    name="telegram_bot_token"
+                    type="password"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_TG_TOKEN_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_TG_TOKEN_DESC"
+                    hint="123456:ABC-DEF..."
+                    filter="string"
+                />
+
+                <field
+                    name="telegram_bot_username"
+                    type="text"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_TG_USERNAME_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_TG_USERNAME_DESC"
+                    hint="my_support_bot"
+                    filter="string"
+                />
+
+                <field
+                    name="telegram_chat_id"
+                    type="text"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_TG_CHAT_ID_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_TG_CHAT_ID_DESC"
+                    hint="-100123456789"
+                    filter="string"
+                />
+
+            </fieldset>
+
+            <!-- ── Appearance ────────────────────────────────────── -->
+            <fieldset name="appearance" label="PLG_SYSTEM_BALE_CHAT_FIELDSET_APPEARANCE">
+
+                <field
+                    name="button_color"
+                    type="color"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_BUTTON_COLOR_LABEL"
+                    default="#0088cc"
+                />
+
+                <field
+                    name="welcome_message"
+                    type="text"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_WELCOME_MSG_LABEL"
+                    description="PLG_SYSTEM_BALE_CHAT_FIELD_WELCOME_MSG_DESC"
+                    default="سلام! چطور می‌توانم کمک کنم؟"
+                    size="80"
+                    filter="string"
+                />
+
+                <field
+                    name="widget_title"
+                    type="text"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_WIDGET_TITLE_LABEL"
+                    default="پشتیبانی آنلاین"
+                    filter="string"
+                />
+
+                <field
+                    name="widget_position"
+                    type="list"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_POSITION_LABEL"
+                    default="bottom-right"
+                >
+                    <option value="bottom-right">Bottom Right (راست)</option>
+                    <option value="bottom-left">Bottom Left (چپ)</option>
+                </field>
+
+                <field
+                    name="hide_on_admin"
+                    type="radio"
+                    label="PLG_SYSTEM_BALE_CHAT_FIELD_HIDE_ADMIN_LABEL"
+                    default="1"
+                    layout="joomla.form.field.radio.switcher"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+            </fieldset>
+
+        </fields>
+    </config>
+
+</extension>
