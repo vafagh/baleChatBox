@@ -48,7 +48,14 @@
         '.bc-head h3{margin:0;font-size:15px;font-weight:700}' +
         '.bc-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;padding:0}' +
         '.bc-body{padding:16px;overflow-y:auto;flex:1;direction:rtl}' +
-        '.bc-welcome{font-size:14px;color:#444;margin:0 0 14px;text-align:center;line-height:1.6}' +
+        '.bc-chat-log{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}' +
+        '.bc-bubble-row{display:flex;align-items:flex-end;gap:8px}' +
+        '.bc-avatar{width:32px;height:32px;border-radius:50%;background:' + color + ';flex-shrink:0;' +
+          'display:flex;align-items:center;justify-content:center;font-size:16px}' +
+        '.bc-bubble{max-width:80%;padding:10px 14px;border-radius:18px 18px 18px 4px;' +
+          'background:#f0f0f0;color:#333;font-size:13.5px;line-height:1.55;direction:rtl;word-break:break-word}' +
+        '.bc-bubble-row .bc-bubble{animation:bc-pop .25s ease}' +
+        '@keyframes bc-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}' +
         '.bc-tabs{display:flex;gap:8px;margin-bottom:14px}' +
         '.bc-tab{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;' +
           'background:#f8f8f8;cursor:pointer;font-size:13px;text-align:center;transition:all .2s}' +
@@ -88,7 +95,12 @@
         '</div>' +
         '<div class="bc-body">' +
           '<p id="bc-fallback-notice" class="bc-notice">⚠️ سرویس Bale در دسترس نیست. اتصال به Telegram…</p>' +
-          '<p class="bc-welcome">' + welcome + '</p>' +
+          '<div class="bc-chat-log">' +
+            '<div class="bc-bubble-row">' +
+              '<div class="bc-avatar">🤖</div>' +
+              '<div class="bc-bubble">' + welcome + '</div>' +
+            '</div>' +
+          '</div>' +
           '<div class="bc-tabs">' +
             '<div class="bc-tab bc-active" data-tab="messenger">پیام‌رسان</div>' +
             '<div class="bc-tab" data-tab="form">فرم ارتباطی</div>' +
