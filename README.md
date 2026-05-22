@@ -1,5 +1,10 @@
 # Bale ChatBox Widget
 
+**📖 Documentation Languages:**
+- **English** (Current)
+- **[فارسی](plugin/bale_chat/language/fa-IR/README.md)** (Persian/Farsi) - پیش‌فرض
+- **[کوردی](plugin/bale_chat/language/ckb-IR/README.md)** (Kurdish-Sorani)
+
 A professional Joomla 4+ system plugin that integrates **Bale Messenger** with **Telegram** as a floating chat widget for website visitors.
 
 ![Joomla](https://img.shields.io/badge/Joomla-4%2B-blue)
