@@ -25,7 +25,7 @@ A modern, production-ready Joomla system plugin that injects a floating chat wid
 ✅ **Multi-language Support**
 - English (en-GB)
 - Persian/Farsi (fa-IR)
-- Kurdish Sorani (ckb-IQ)
+- Kurdish-Sorani (ckb-IR)
 
 ## Installation
 

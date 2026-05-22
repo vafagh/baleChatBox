@@ -16,8 +16,8 @@
     <filename>language/en-GB/plg_system_bale_chat.sys.ini</filename>
     <filename>language/fa-IR/plg_system_bale_chat.ini</filename>
     <filename>language/fa-IR/plg_system_bale_chat.sys.ini</filename>
-    <filename>language/ckb-IQ/plg_system_bale_chat.ini</filename>
-    <filename>language/ckb-IQ/plg_system_bale_chat.sys.ini</filename>
+    <filename>language/ckb-IR/plg_system_bale_chat.ini</filename>
+    <filename>language/ckb-IR/plg_system_bale_chat.sys.ini</filename>
     <folder>src</folder>
     <folder>media</folder>
     <folder>services</folder>
@@ -48,8 +48,8 @@
     <language tag="en-GB">en-GB/plg_system_bale_chat.sys.ini</language>
     <language tag="fa-IR">fa-IR/plg_system_bale_chat.ini</language>
     <language tag="fa-IR">fa-IR/plg_system_bale_chat.sys.ini</language>
-    <language tag="ckb-IQ">ckb-IQ/plg_system_bale_chat.ini</language>
-    <language tag="ckb-IQ">ckb-IQ/plg_system_bale_chat.sys.ini</language>
+    <language tag="ckb-IR">ckb-IR/plg_system_bale_chat.ini</language>
+    <language tag="ckb-IR">ckb-IR/plg_system_bale_chat.sys.ini</language>
   </languages>
 
   <scriptfile>services/installer.php</scriptfile>

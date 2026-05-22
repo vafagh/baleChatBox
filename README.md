@@ -140,7 +140,7 @@ Fully translated user interfaces and admin descriptions:
 |----------|------|--------|
 | English | en-GB | ✅ Complete |
 | Persian/Farsi | fa-IR | ✅ Complete |
-| Kurdish (Sorani) | ckb-IQ | ✅ Complete |
+| Kurdish (Sorani) | ckb-IR | ✅ Complete |
 
 ## 📝 License
 
