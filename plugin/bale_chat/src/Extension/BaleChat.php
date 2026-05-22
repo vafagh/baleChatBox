@@ -84,7 +84,6 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
             'plg_system_balechat.widget',
             'plg_system_bale_chat/js/bale_chat.js',
             ['relative' => true, 'version' => 'auto'],
-            ['defer' => true],
         );
     }
 
