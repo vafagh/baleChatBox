@@ -164,7 +164,6 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
                     [
                         'chat_id'                  => $baleChatId,
                         'text'                     => $text,
-                        'parse_mode'               => 'Markdown',
                         'disable_web_page_preview' => 'true',
                     ],
                 );
@@ -192,7 +191,6 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
                     [
                         'chat_id'                  => $tgChatId,
                         'text'                     => $text,
-                        'parse_mode'               => 'Markdown',
                         'disable_web_page_preview' => 'true',
                     ],
                 );
