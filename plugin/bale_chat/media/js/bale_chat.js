@@ -4,7 +4,7 @@
 
   var cfg = window.BaleChatConfig || {};
   var widgetOpen = false;
-  var baleAvailable = null; // null | true | false
+  var activeService = 'joomla'; // bale | telegram | joomla
 
   function esc(str) {
     return String(str || '').replace(/[&<>"']/g, function (c) {
@@ -12,53 +12,85 @@
     });
   }
 
-  function checkBaleReachability(done) {
-    if (cfg.primaryService === 'telegram') {
-      baleAvailable = false;
-      done();
-      return;
-    }
-
+  function checkEndpoint(url, done) {
     var controller = new AbortController();
     var timer = setTimeout(function () {
       controller.abort();
     }, cfg.fallbackTimeout || 4000);
 
-    fetch('https://tapi.bale.ai/', { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
+    fetch(url, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
       .then(function () {
         clearTimeout(timer);
-        baleAvailable = true;
-        done();
+        done(true);
       })
       .catch(function () {
         clearTimeout(timer);
-        baleAvailable = false;
-        done();
+        done(false);
       });
   }
 
+  function detectActiveService(done) {
+    // Bale has strict priority only when configured and reachable.
+    if (cfg.baleConfigured) {
+      checkEndpoint('https://tapi.bale.ai/', function (ok) {
+        if (ok) {
+          activeService = 'bale';
+          done();
+          return;
+        }
+
+        if (cfg.telegramConfigured) {
+          checkEndpoint('https://api.telegram.org/', function (tgOk) {
+            activeService = tgOk ? 'telegram' : 'joomla';
+            done();
+          });
+
+          return;
+        }
+
+        activeService = 'joomla';
+        done();
+      });
+
+      return;
+    }
+
+    // Bale is not configured, try Telegram.
+    if (cfg.telegramConfigured) {
+      checkEndpoint('https://api.telegram.org/', function (tgOk) {
+        activeService = tgOk ? 'telegram' : 'joomla';
+        done();
+      });
+
+      return;
+    }
+
+    activeService = 'joomla';
+    done();
+  }
+
   function serviceLabel() {
-    if (cfg.primaryService === 'telegram') {
+    if (activeService === 'bale') {
+      return 'بله';
+    }
+
+    if (activeService === 'telegram') {
       return 'تلگرام';
     }
 
-    if (baleAvailable === false) {
-      return 'تلگرام';
-    }
-
-    return 'بله';
+    return 'فرم تماس جوملا';
   }
 
   function contactLabel() {
-    if (cfg.primaryService === 'telegram') {
+    if (activeService === 'bale') {
+      return 'بله ID شما';
+    }
+
+    if (activeService === 'telegram') {
       return 'Telegram ID شما';
     }
 
-    if (baleAvailable === false) {
-      return 'Telegram ID شما';
-    }
-
-    return 'بله ID شما';
+    return 'ایمیل/شماره تماس شما';
   }
 
   function buildHTML() {
@@ -81,6 +113,7 @@
         '#bc-panel.bc-open{display:flex}' +
         '#bc-panel.bc-bale::before{content:"بله";position:absolute;inset:auto 16px 18px auto;font-size:74px;font-weight:700;letter-spacing:.04em;color:rgba(0,136,204,.06);transform:rotate(-12deg);pointer-events:none;z-index:0}' +
         '#bc-panel.bc-telegram::before{content:"تلگرام";position:absolute;inset:auto 16px 18px auto;font-size:54px;font-weight:700;letter-spacing:.04em;color:rgba(34,157,217,.05);transform:rotate(-12deg);pointer-events:none;z-index:0}' +
+        '#bc-panel.bc-joomla::before{content:"Joomla";position:absolute;inset:auto 16px 18px auto;font-size:52px;font-weight:700;letter-spacing:.04em;color:rgba(100,100,100,.05);transform:rotate(-12deg);pointer-events:none;z-index:0}' +
         '.bc-head{background:' + color + ';color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}' +
         '.bc-head h3{margin:0;font-size:15px;font-weight:700;position:relative;z-index:1}' +
         '.bc-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;padding:0}' +
@@ -151,12 +184,12 @@
     }
 
     labelEl.textContent = serviceLabel();
-    var showWarn = cfg.primaryService !== 'telegram' && baleAvailable === false;
+    var showWarn = activeService !== 'bale' && cfg.baleConfigured;
     warnEl.className = 'bc-warn' + (showWarn ? ' bc-show' : '');
 
     if (panel) {
-      panel.classList.remove('bc-bale', 'bc-telegram');
-      panel.classList.add(serviceLabel() === 'بله' ? 'bc-bale' : 'bc-telegram');
+      panel.classList.remove('bc-bale', 'bc-telegram', 'bc-joomla');
+      panel.classList.add(activeService === 'bale' ? 'bc-bale' : (activeService === 'telegram' ? 'bc-telegram' : 'bc-joomla'));
     }
 
     var contact = document.querySelector('#bc-form .bc-contact');
@@ -166,7 +199,7 @@
 
     var contactType = document.querySelector('#bc-form input[name="contact_type"]');
     if (contactType) {
-      contactType.value = serviceLabel() === 'بله' ? 'bale' : 'telegram';
+      contactType.value = activeService;
     }
   }
 
@@ -178,6 +211,11 @@
 
     if (!name.trim() || !msg.trim()) {
       addBubble(logEl, 'bot', 'لطفاً نام و پیام را کامل وارد کنید.');
+      return;
+    }
+
+    if (!contactId.trim()) {
+      addBubble(logEl, 'bot', 'لطفاً شناسه تماس خود را وارد کنید.');
       return;
     }
 
@@ -212,6 +250,11 @@
             if (bubble) bubble.classList.remove('bc-sending');
           }
           form.elements.message.value = '';
+
+          // For Joomla fallback, explicitly tell user they will be contacted.
+          if (activeService === 'joomla') {
+            addBubble(logEl, 'bot', res.message || 'درخواست شما ثبت شد. به‌زودی از طریق شناسه تماس اعلام‌شده با شما ارتباط می‌گیریم.');
+          }
         } else {
           if (userRow) {
             userRow.className = 'bc-row bc-user';
@@ -243,8 +286,9 @@
     var logEl = document.getElementById('bc-log');
     var sendBtn = document.getElementById('bc-send');
 
-    checkBaleReachability(updateServiceUi);
-    updateServiceUi();
+    detectActiveService(function () {
+      updateServiceUi();
+    });
 
     btn.addEventListener('click', function () {
       widgetOpen = !widgetOpen;

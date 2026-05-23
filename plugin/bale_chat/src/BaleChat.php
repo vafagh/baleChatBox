@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Joomla\Plugin\System\BaleChat;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Http\HttpFactory;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Session\Session;
@@ -59,6 +60,8 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
                 'primaryService'  => $params->get('primary_service', 'bale'),
                 'baleUsername'    => $this->sanitizeUsername((string) $params->get('bale_bot_username', '')),
                 'tgUsername'      => $this->sanitizeUsername((string) $params->get('telegram_bot_username', '')),
+                'baleConfigured'  => (string) $params->get('bale_bot_token', '') !== '' && (string) $params->get('bale_chat_id', '') !== '',
+                'telegramConfigured' => (string) $params->get('telegram_bot_token', '') !== '' && (string) $params->get('telegram_chat_id', '') !== '',
                 'buttonColor'     => $this->sanitizeColor((string) $params->get('button_color', '#0088cc')),
                 'welcomeMessage'  => (string) $params->get('welcome_message', 'سلام! چطور می‌توانم کمک کنم؟'),
                 'position'        => in_array($params->get('widget_position', 'bottom-right'), ['bottom-right', 'bottom-left'], true)
@@ -133,7 +136,6 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
             return;
         }
 
-        $primaryService = (string) $this->params->get('primary_service', 'bale');
         $baleToken      = (string) $this->params->get('bale_bot_token', '');
         $baleChatId     = (string) $this->params->get('bale_chat_id', '');
         $tgToken        = (string) $this->params->get('telegram_bot_token', '');
@@ -143,82 +145,61 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
         $baleConfigured = $baleToken !== '' && $baleChatId !== '';
         $tgConfigured   = $tgToken !== '' && $tgChatId !== '';
 
-        if (!$baleConfigured && !$tgConfigured) {
-            $this->ajaxReturn($event, false, 'سرویس پشتیبانی هنوز پیکربندی نشده است.');
+        $contactLabel = $contactType === 'bale' ? '🆔 بله ID' : '🆔 Telegram ID';
+        if ($contactType === 'joomla') {
+            $contactLabel = '🆔 اطلاعات تماس';
+        }
+
+        $contactLink = '';
+        $normalizedId = ltrim($contactId, '@');
+        if ($contactType === 'bale' && $normalizedId !== '') {
+            $contactLink = ' (https://ble.ir/' . $normalizedId . ')';
+        }
+
+        if ($contactType === 'telegram' && $normalizedId !== '') {
+            $contactLink = ' (https://t.me/' . $normalizedId . ')';
+        }
+
+        $text      = "🌐 *پیام از وب‌سایت*\n"
+               . "👤 *نام:* " . $name . "\n"
+                   . $contactLabel . ': ' . $contactId . $contactLink . "\n"
+                   . "💬 *پیام:*\n" . $message . "\n"
+                   . "🔗 " . Uri::current();
+
+        // Resolve provider order strictly: Bale (if configured+online) -> Telegram (if configured+online) -> Joomla contact fallback.
+        $providerQueue = [];
+
+        if ($baleConfigured && $this->isBaleOnline($baleToken)) {
+            $providerQueue[] = ['type' => 'bale', 'token' => $baleToken, 'chatId' => $baleChatId];
+        }
+
+        if ($tgConfigured && $this->isTelegramOnline($tgToken)) {
+            $providerQueue[] = ['type' => 'telegram', 'token' => $tgToken, 'chatId' => $tgChatId];
+        }
+
+        $errors = [];
+
+        foreach ($providerQueue as $provider) {
+            $result = $this->sendToProvider($provider['type'], $provider['token'], $provider['chatId'], $text);
+
+            if ($result['ok'] === true) {
+                $this->ajaxReturn($event, true, 'ارسال پیام انجام شد.');
+
+                return;
+            }
+
+            $errors[] = $result['error'];
+        }
+
+        // Final fallback: Joomla contact-style server notification.
+        if ($this->sendViaJoomlaContactFallback($name, $contactId, $message, Uri::current())) {
+            $this->ajaxReturn($event, true, 'درخواست شما ثبت شد. همکاران ما به‌زودی از طریق شناسه تماس اعلام‌شده با شما ارتباط می‌گیرند.');
 
             return;
         }
 
-        $contactLabel = $contactType === 'bale' ? '🆔 بله ID' : '🆔 Telegram ID';
-        $text      = "🌐 *پیام از وب‌سایت*\n"
-               . "👤 *نام:* " . $name . "\n"
-               . $contactLabel . ': ' . $contactId . "\n"
-                   . "💬 *پیام:*\n" . $message . "\n"
-                   . "🔗 " . Uri::current();
-
-        $successCount = 0;
-        $errors       = [];
-
-        // Send to Bale first if it's configured
-        if ($baleConfigured && ($primaryService === 'bale' || !$tgConfigured)) {
-            try {
-                $http     = HttpFactory::getHttp();
-                $baleUrl  = sprintf('https://tapi.bale.ai/bot%s/sendMessage', $baleToken);
-                $response = $http->post(
-                    $baleUrl,
-                    [
-                        'chat_id'                  => $baleChatId,
-                        'text'                     => $text,
-                        'disable_web_page_preview' => 'true',
-                    ],
-                );
-
-                $payload = json_decode((string) $response->body, true);
-
-                if ($response->code === 200 && (!is_array($payload) || !array_key_exists('ok', $payload) || (bool) $payload['ok'] === true)) {
-                    $successCount++;
-                } else {
-                    $desc = is_array($payload) && isset($payload['description']) ? (string) $payload['description'] : '';
-                    $errors[] = 'Bale: ' . $response->code . ($desc !== '' ? (' - ' . $desc) : '');
-                }
-            } catch (\Throwable $e) {
-                $errors[] = 'Bale: ' . $e->getMessage();
-            }
-        }
-
-        // Send to Telegram if it's configured and either it's primary or Bale failed
-        if ($tgConfigured && ($primaryService === 'telegram' || !$baleConfigured || count($errors) > 0)) {
-            try {
-                $http     = HttpFactory::getHttp();
-                $tgUrl    = sprintf('https://api.telegram.org/bot%s/sendMessage', $tgToken);
-                $response = $http->post(
-                    $tgUrl,
-                    [
-                        'chat_id'                  => $tgChatId,
-                        'text'                     => $text,
-                        'disable_web_page_preview' => 'true',
-                    ],
-                );
-
-                $payload = json_decode((string) $response->body, true);
-
-                if ($response->code === 200 && (!is_array($payload) || !array_key_exists('ok', $payload) || (bool) $payload['ok'] === true)) {
-                    $successCount++;
-                } else {
-                    $desc = is_array($payload) && isset($payload['description']) ? (string) $payload['description'] : '';
-                    $errors[] = 'Telegram: ' . $response->code . ($desc !== '' ? (' - ' . $desc) : '');
-                }
-            } catch (\Throwable $e) {
-                $errors[] = 'Telegram: ' . $e->getMessage();
-            }
-        }
-
-        if ($successCount > 0) {
-            $this->ajaxReturn($event, true, 'پیام شما با موفقیت ارسال شد.');
-        } else {
-            $detail = count($errors) > 0 ? (' (' . implode(' | ', $errors) . ')') : '';
-            $this->ajaxReturn($event, false, 'ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.' . $detail);
-        }
+        $detail = count($errors) > 0 ? (' (' . implode(' | ', $errors) . ')') : '';
+        $this->ajaxReturn($event, false, 'ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.' . $detail);
     }
 
     // -------------------------------------------------------------------------
@@ -240,5 +221,115 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
     private function sanitizeColor(string $value): string
     {
         return preg_match('/^#[0-9A-Fa-f]{3}(?:[0-9A-Fa-f]{3})?$/', $value) ? $value : '#0088cc';
+    }
+
+    private function isBaleOnline(string $token): bool
+    {
+        if ($token === '') {
+            return false;
+        }
+
+        try {
+            $http = HttpFactory::getHttp();
+            $url = sprintf('https://tapi.bale.ai/bot%s/getMe', $token);
+            $response = $http->get($url);
+            $payload = json_decode((string) $response->body, true);
+
+            return $response->code === 200
+                && is_array($payload)
+                && (!array_key_exists('ok', $payload) || (bool) ($payload['ok'] ?? false));
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    private function isTelegramOnline(string $token): bool
+    {
+        if ($token === '') {
+            return false;
+        }
+
+        try {
+            $http = HttpFactory::getHttp();
+            $url = sprintf('https://api.telegram.org/bot%s/getMe', $token);
+            $response = $http->get($url);
+            $payload = json_decode((string) $response->body, true);
+
+            return $response->code === 200
+                && is_array($payload)
+                && (!array_key_exists('ok', $payload) || (bool) ($payload['ok'] ?? false));
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * @return array{ok: bool, error: string}
+     */
+    private function sendToProvider(string $provider, string $token, string $chatId, string $text): array
+    {
+        try {
+            $http = HttpFactory::getHttp();
+            $url = $provider === 'bale'
+                ? sprintf('https://tapi.bale.ai/bot%s/sendMessage', $token)
+                : sprintf('https://api.telegram.org/bot%s/sendMessage', $token);
+
+            $response = $http->post(
+                $url,
+                [
+                    'chat_id'                  => $chatId,
+                    'text'                     => $text,
+                    'disable_web_page_preview' => 'true',
+                ],
+            );
+
+            $payload = json_decode((string) $response->body, true);
+            $ok = $response->code === 200 && (!is_array($payload) || !array_key_exists('ok', $payload) || (bool) $payload['ok'] === true);
+
+            if ($ok) {
+                return ['ok' => true, 'error' => ''];
+            }
+
+            $desc = is_array($payload) && isset($payload['description']) ? (string) $payload['description'] : '';
+
+            return [
+                'ok' => false,
+                'error' => ucfirst($provider) . ': ' . $response->code . ($desc !== '' ? (' - ' . $desc) : ''),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'ok' => false,
+                'error' => ucfirst($provider) . ': ' . $e->getMessage(),
+            ];
+        }
+    }
+
+    private function sendViaJoomlaContactFallback(string $name, string $contactId, string $message, string $sourceUrl): bool
+    {
+        try {
+            $app = $this->getApplication();
+            $mailer = Factory::getMailer();
+            $mailFrom = (string) $app->get('mailfrom');
+            $fromName = (string) $app->get('fromname', 'Website Contact');
+
+            if ($mailFrom === '') {
+                return false;
+            }
+
+            $body = "New inquiry from website widget\n\n"
+                . "Name: " . $name . "\n"
+                . "Shared contact: " . $contactId . "\n"
+                . "Message:\n" . $message . "\n\n"
+                . "Source: " . $sourceUrl;
+
+            $mailer->setSender([$mailFrom, $fromName]);
+            $mailer->addRecipient($mailFrom);
+            $mailer->setSubject('Widget Inquiry Fallback');
+            $mailer->setBody($body);
+
+            return (bool) $mailer->Send();
+        } catch (\Throwable) {
+            return false;
+        }
     }
 }
