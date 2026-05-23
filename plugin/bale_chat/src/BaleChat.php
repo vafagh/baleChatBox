@@ -174,7 +174,8 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
                 if ($response->code === 200 && (!is_array($payload) || !array_key_exists('ok', $payload) || (bool) $payload['ok'] === true)) {
                     $successCount++;
                 } else {
-                    $errors[] = 'Bale: ' . $response->code;
+                    $desc = is_array($payload) && isset($payload['description']) ? (string) $payload['description'] : '';
+                    $errors[] = 'Bale: ' . $response->code . ($desc !== '' ? (' - ' . $desc) : '');
                 }
             } catch (\Throwable $e) {
                 $errors[] = 'Bale: ' . $e->getMessage();
@@ -201,7 +202,8 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
                 if ($response->code === 200 && (!is_array($payload) || !array_key_exists('ok', $payload) || (bool) $payload['ok'] === true)) {
                     $successCount++;
                 } else {
-                    $errors[] = 'Telegram: ' . $response->code;
+                    $desc = is_array($payload) && isset($payload['description']) ? (string) $payload['description'] : '';
+                    $errors[] = 'Telegram: ' . $response->code . ($desc !== '' ? (' - ' . $desc) : '');
                 }
             } catch (\Throwable $e) {
                 $errors[] = 'Telegram: ' . $e->getMessage();
@@ -211,7 +213,8 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
         if ($successCount > 0) {
             $this->ajaxReturn($event, true, 'پیام شما با موفقیت ارسال شد.');
         } else {
-            $this->ajaxReturn($event, false, 'ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.');
+            $detail = count($errors) > 0 ? (' (' . implode(' | ', $errors) . ')') : '';
+            $this->ajaxReturn($event, false, 'ارسال پیام ناموفق بود. لطفاً دوباره تلاش کنید.' . $detail);
         }
     }
 
