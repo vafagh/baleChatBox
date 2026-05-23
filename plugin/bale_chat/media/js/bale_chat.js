@@ -2,297 +2,224 @@
 (function () {
   'use strict';
 
-  const cfg = window.BaleChatConfig || {};
+  var cfg = window.BaleChatConfig || {};
+  var widgetOpen = false;
+  var baleAvailable = null; // null | true | false
 
-  // ── runtime state ──────────────────────────────────────────────────────────
-  let widgetOpen    = false;
-  let baleAvailable = null; // null = not yet checked | true | false
-
-  // ── deep-link templates ────────────────────────────────────────────────────
-  const BALE_BASE_URL  = 'https://tapi.bale.ai/';           // reachability probe
-  const BALE_CHAT_URL  = 'https://ble.ir/' + (cfg.baleUsername || '');
-  const TG_CHAT_URL    = 'https://t.me/'   + (cfg.tgUsername   || '');
-
-  // ── helpers ────────────────────────────────────────────────────────────────
   function esc(str) {
     return String(str || '').replace(/[&<>"']/g, function (c) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
   }
 
-  // ── widget HTML ───────────────────────────────────────────────────────────
-  function buildHTML() {
-    const color    = esc(cfg.buttonColor   || '#0088cc');
-    const posCSS   = cfg.position === 'bottom-left' ? 'left:24px' : 'right:24px';
-    const welcome  = esc(cfg.welcomeMessage || 'سلام! چطور می‌توانم کمک کنم؟');
-    const token    = esc(cfg.token || '');
-    const baleSrc  = esc(BALE_CHAT_URL);
-    const tgSrc    = esc(TG_CHAT_URL);
-
-    return (
-      '<style>' +
-        '#bale-chat-widget *{box-sizing:border-box;font-family:Tahoma,Arial,sans-serif}' +
-        '#bc-btn{position:fixed;bottom:24px;' + posCSS + ';width:56px;height:56px;' +
-          'border-radius:50%;background:' + color + ';border:none;cursor:pointer;' +
-          'box-shadow:0 4px 16px rgba(0,0,0,.28);display:flex;align-items:center;' +
-          'justify-content:center;z-index:9998;transition:transform .2s}' +
-        '#bc-btn:hover{transform:scale(1.1)}' +
-        '#bc-btn svg{width:28px;height:28px;fill:#fff}' +
-        '#bc-panel{position:fixed;bottom:92px;' + posCSS + ';width:320px;' +
-          'background:#fff;border-radius:16px;' +
-          'box-shadow:0 8px 32px rgba(0,0,0,.18);z-index:9999;display:none;' +
-          'flex-direction:column;overflow:hidden;max-height:500px}' +
-        '#bc-panel.bc-open{display:flex}' +
-        '.bc-head{background:' + color + ';color:#fff;padding:14px 16px;' +
-          'display:flex;justify-content:space-between;align-items:center}' +
-        '.bc-head h3{margin:0;font-size:15px;font-weight:700}' +
-        '.bc-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;padding:0}' +
-        '.bc-body{padding:16px;overflow-y:auto;flex:1;direction:rtl}' +
-        '.bc-chat-log{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}' +
-        '.bc-bubble-row{display:flex;align-items:flex-end;gap:8px}' +
-        '.bc-avatar{width:32px;height:32px;border-radius:50%;background:' + color + ';flex-shrink:0;' +
-          'display:flex;align-items:center;justify-content:center;font-size:16px}' +
-        '.bc-bubble{max-width:80%;padding:10px 14px;border-radius:18px 18px 18px 4px;' +
-          'background:#f0f0f0;color:#333;font-size:13.5px;line-height:1.55;direction:rtl;word-break:break-word}' +
-        '.bc-bubble-row .bc-bubble{animation:bc-pop .25s ease}' +
-        '@keyframes bc-pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}' +
-        '.bc-tabs{display:flex;gap:8px;margin-bottom:14px}' +
-        '.bc-tab{flex:1;padding:8px 4px;border:2px solid #ddd;border-radius:8px;' +
-          'background:#f8f8f8;cursor:pointer;font-size:13px;text-align:center;transition:all .2s}' +
-        '.bc-tab.bc-active,.bc-tab:hover{border-color:' + color + ';background:' + color + ';color:#fff}' +
-        '.bc-sec{display:none}.bc-sec.bc-active{display:block}' +
-        '.bc-link{display:flex;align-items:center;justify-content:center;gap:8px;' +
-          'width:100%;padding:12px;border-radius:10px;border:none;cursor:pointer;' +
-          'font-size:14px;margin-bottom:10px;text-decoration:none;color:#fff;' +
-          'background:' + color + ';transition:opacity .2s}' +
-        '.bc-link:hover{opacity:.88}' +
-        '.bc-link.bc-tg{background:#229ED9}' +
-        '.bc-notice{font-size:12px;color:#856404;background:#fff3cd;border-radius:6px;' +
-          'padding:7px 10px;margin-bottom:10px;display:none}' +
-        '.bc-notice.bc-show{display:block}' +
-        '.bc-form input,.bc-form textarea{width:100%;padding:9px 12px;border:1px solid #ddd;' +
-          'border-radius:8px;font-size:14px;margin-bottom:10px;outline:none;direction:rtl}' +
-        '.bc-form input:focus,.bc-form textarea:focus{border-color:' + color + '}' +
-        '.bc-form textarea{min-height:80px;resize:vertical}' +
-        '.bc-submit{width:100%;padding:10px;background:' + color + ';color:#fff;' +
-          'border:none;border-radius:8px;font-size:14px;cursor:pointer;transition:opacity .2s}' +
-        '.bc-submit:disabled{opacity:.55;cursor:not-allowed}' +
-        '.bc-msg{font-size:13px;padding:8px 10px;border-radius:6px;margin-top:6px;display:none}' +
-        '.bc-msg.bc-ok{background:#d4edda;color:#155724;display:block}' +
-        '.bc-msg.bc-err{background:#f8d7da;color:#721c24;display:block}' +
-      '</style>' +
-
-      '<button id="bc-btn" aria-label="پشتیبانی آنلاین">' +
-        '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
-          '<path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>' +
-        '</svg>' +
-      '</button>' +
-
-      '<div id="bc-panel" role="dialog" aria-label="چت پشتیبانی">' +
-        '<div class="bc-head">' +
-          '<h3>💬 پشتیبانی آنلاین</h3>' +
-          '<button id="bc-close" aria-label="بستن">×</button>' +
-        '</div>' +
-        '<div class="bc-body">' +
-          '<p id="bc-fallback-notice" class="bc-notice">⚠️ سرویس Bale در دسترس نیست. اتصال به Telegram…</p>' +
-          '<div class="bc-chat-log">' +
-            '<div class="bc-bubble-row">' +
-              '<div class="bc-avatar">🤖</div>' +
-              '<div class="bc-bubble">' + welcome + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<div class="bc-tabs">' +
-            '<div class="bc-tab bc-active" data-tab="messenger">پیام‌رسان</div>' +
-            '<div class="bc-tab" data-tab="form">فرم ارتباطی</div>' +
-          '</div>' +
-          '<div class="bc-sec bc-active" id="bc-tab-messenger">' +
-            '<a id="bc-bale-link" class="bc-link" href="' + baleSrc + '" target="_blank" rel="noopener noreferrer">📱 چت در Bale</a>' +
-            '<a id="bc-tg-link" class="bc-link bc-tg" href="' + tgSrc + '" target="_blank" rel="noopener noreferrer" style="display:none">✈️ چت در Telegram</a>' +
-          '</div>' +
-          '<div class="bc-sec" id="bc-tab-form">' +
-            '<form class="bc-form" id="bc-contact-form" novalidate>' +
-              '<input type="text"  name="name"    placeholder="نام شما *"           required maxlength="100" autocomplete="name" />' +
-              '<input type="email" name="email"   placeholder="ایمیل (اختیاری)"              maxlength="254" autocomplete="email" />' +
-              '<textarea           name="message" placeholder="پیام شما *"           required maxlength="2000"></textarea>' +
-              '<input type="hidden" name="' + token + '" value="1" />' +
-              '<button type="submit" class="bc-submit">ارسال پیام</button>' +
-              '<div class="bc-msg" id="bc-form-msg"></div>' +
-            '</form>' +
-          '</div>' +
-        '</div>' +
-      '</div>'
-    );
-  }
-
-  // ── Bale reachability check ────────────────────────────────────────────────
-  function checkBale() {
-    if (!cfg.baleUsername) {
+  function checkBaleReachability(done) {
+    if (cfg.primaryService === 'telegram') {
       baleAvailable = false;
-      applyServiceState();
+      done();
       return;
     }
 
     var controller = new AbortController();
-    var timer      = setTimeout(function () { controller.abort(); }, cfg.fallbackTimeout || 4000);
+    var timer = setTimeout(function () {
+      controller.abort();
+    }, cfg.fallbackTimeout || 4000);
 
-    fetch(BALE_BASE_URL, { method: 'HEAD', signal: controller.signal, mode: 'no-cors' })
+    fetch('https://tapi.bale.ai/', { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
       .then(function () {
         clearTimeout(timer);
         baleAvailable = true;
-        applyServiceState();
+        done();
       })
       .catch(function () {
         clearTimeout(timer);
         baleAvailable = false;
-        applyServiceState();
+        done();
       });
   }
 
-  // ── update UI based on availability ──────────────────────────────────────
-  function applyServiceState() {
-    var baleLink = document.getElementById('bc-bale-link');
-    var tgLink   = document.getElementById('bc-tg-link');
-    var notice   = document.getElementById('bc-fallback-notice');
-
-    var useBale =
-      cfg.primaryService !== 'telegram' &&
-      cfg.baleUsername &&
-      baleAvailable !== false;
-
-    var useTg =
-      cfg.tgUsername &&
-      (cfg.primaryService === 'telegram' || baleAvailable === false || !cfg.baleUsername);
-
-    if (baleLink) baleLink.style.display = useBale ? 'flex' : 'none';
-    if (tgLink)   tgLink.style.display   = useTg   ? 'flex' : 'none';
-
-    if (notice) {
-      var showNotice = cfg.primaryService !== 'telegram' && baleAvailable === false && cfg.tgUsername;
-      notice.className = 'bc-notice' + (showNotice ? ' bc-show' : '');
+  function serviceLabel() {
+    if (cfg.primaryService === 'telegram') {
+      return 'تلگرام';
     }
 
-    // If nothing to show in messenger tab, activate form tab instead
-    if (!useBale && !useTg) {
-      switchTab('form');
+    if (baleAvailable === false) {
+      return 'تلگرام';
     }
+
+    return 'بال';
   }
 
-  // ── tab switching ─────────────────────────────────────────────────────────
-  function switchTab(name) {
-    var tabs = document.querySelectorAll('#bale-chat-widget .bc-tab');
-    var secs = document.querySelectorAll('#bale-chat-widget .bc-sec');
+  function buildHTML() {
+    var color = esc(cfg.buttonColor || '#0088cc');
+    var posCSS = cfg.position === 'bottom-left' ? 'left:24px' : 'right:24px';
+    var welcome = esc(cfg.welcomeMessage || 'سلام! چطور می‌توانم کمک کنم؟');
+    var token = esc(cfg.token || '');
 
-    tabs.forEach(function (t) {
-      t.className = 'bc-tab' + (t.dataset.tab === name ? ' bc-active' : '');
-    });
-    secs.forEach(function (s) {
-      s.className = 'bc-sec' + (s.id === 'bc-tab-' + name ? ' bc-active' : '');
-    });
+    return (
+      '<style>' +
+        '#bale-chat-widget *{box-sizing:border-box;font-family:Tahoma,Arial,sans-serif}' +
+        '#bc-btn{position:fixed;bottom:24px;' + posCSS + ';width:56px;height:56px;border-radius:50%;' +
+          'background:' + color + ';border:none;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.28);' +
+          'display:flex;align-items:center;justify-content:center;z-index:9998;transition:transform .2s}' +
+        '#bc-btn:hover{transform:scale(1.08)}' +
+        '#bc-btn svg{width:28px;height:28px;fill:#fff}' +
+        '#bc-panel{position:fixed;bottom:92px;' + posCSS + ';width:340px;max-width:calc(100vw - 28px);' +
+          'height:520px;max-height:calc(100vh - 120px);background:#fff;border-radius:16px;' +
+          'box-shadow:0 10px 32px rgba(0,0,0,.2);z-index:9999;display:none;flex-direction:column;overflow:hidden}' +
+        '#bc-panel.bc-open{display:flex}' +
+        '.bc-head{background:' + color + ';color:#fff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}' +
+        '.bc-head h3{margin:0;font-size:15px;font-weight:700}' +
+        '.bc-head button{background:none;border:none;color:#fff;cursor:pointer;font-size:22px;line-height:1;padding:0}' +
+        '.bc-subhead{padding:8px 12px;background:#f6fbff;border-bottom:1px solid #e5edf5;font-size:12px;direction:rtl}' +
+        '.bc-subhead strong{color:' + color + '}' +
+        '.bc-subhead .bc-warn{display:none;color:#8a6d3b;background:#fff3cd;border:1px solid #faebcc;padding:5px 8px;border-radius:6px;margin-top:6px}' +
+        '.bc-subhead .bc-warn.bc-show{display:block}' +
+        '.bc-body{flex:1;padding:12px;overflow-y:auto;direction:rtl;background:#fafafa}' +
+        '.bc-row{display:flex;gap:8px;margin-bottom:8px;align-items:flex-end}' +
+        '.bc-row.bc-user{justify-content:flex-start}' +
+        '.bc-row.bc-bot{justify-content:flex-end}' +
+        '.bc-avatar{width:28px;height:28px;border-radius:50%;background:' + color + ';color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}' +
+        '.bc-bubble{max-width:78%;padding:9px 12px;border-radius:14px;font-size:13px;line-height:1.55;word-break:break-word}' +
+        '.bc-row.bc-user .bc-bubble{background:#e9f6ff;border:1px solid #cde9ff}' +
+        '.bc-row.bc-bot .bc-bubble{background:#fff;border:1px solid #e5e5e5}' +
+        '.bc-foot{padding:10px;border-top:1px solid #e5e5e5;background:#fff}' +
+        '.bc-name,.bc-email,.bc-input{width:100%;border:1px solid #d9d9d9;border-radius:10px;padding:9px 10px;font-size:13px;outline:none;direction:rtl}' +
+        '.bc-name:focus,.bc-email:focus,.bc-input:focus{border-color:' + color + '}' +
+        '.bc-name,.bc-email{margin-bottom:8px}' +
+        '.bc-send{margin-top:8px;width:100%;border:none;border-radius:10px;padding:10px;background:' + color + ';color:#fff;font-size:14px;cursor:pointer}' +
+        '.bc-send:disabled{opacity:.55;cursor:not-allowed}' +
+      '</style>' +
+
+      '<button id="bc-btn" aria-label="پشتیبانی آنلاین">' +
+        '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>' +
+      '</button>' +
+
+      '<div id="bc-panel" role="dialog" aria-label="چت پشتیبانی">' +
+        '<div class="bc-head"><h3>💬 چت پشتیبانی</h3><button id="bc-close" aria-label="بستن">×</button></div>' +
+        '<div class="bc-subhead">سرویس فعال: <strong id="bc-service-label"></strong><div id="bc-fallback-notice" class="bc-warn">⚠️ بال در دسترس نیست، ارسال با تلگرام انجام می‌شود.</div></div>' +
+        '<div id="bc-log" class="bc-body">' +
+          '<div class="bc-row bc-bot"><div class="bc-avatar">🤖</div><div class="bc-bubble">' + welcome + '</div></div>' +
+        '</div>' +
+        '<form id="bc-form" class="bc-foot" novalidate>' +
+          '<input class="bc-name" type="text" name="name" maxlength="100" placeholder="نام شما *" required autocomplete="name" />' +
+          '<input class="bc-email" type="email" name="email" maxlength="254" placeholder="ایمیل (اختیاری)" autocomplete="email" />' +
+          '<textarea class="bc-input" name="message" maxlength="2000" rows="3" placeholder="پیام خود را بنویسید... *" required></textarea>' +
+          '<input type="hidden" name="' + token + '" value="1" />' +
+          '<button id="bc-send" class="bc-send" type="submit">ارسال پیام</button>' +
+        '</form>' +
+      '</div>'
+    );
   }
 
-  // ── form submission ───────────────────────────────────────────────────────
-  function submitForm(form) {
-    var msgEl  = document.getElementById('bc-form-msg');
-    var btn    = form.querySelector('.bc-submit');
-    var name   = (form.elements.name    || {}).value;
-    var msg    = (form.elements.message || {}).value;
+  function addBubble(logEl, side, text) {
+    var safe = esc(text);
+    var row = document.createElement('div');
+    row.className = 'bc-row ' + (side === 'user' ? 'bc-user' : 'bc-bot');
+    row.innerHTML = side === 'user'
+      ? '<div class="bc-bubble">' + safe + '</div><div class="bc-avatar">👤</div>'
+      : '<div class="bc-avatar">🤖</div><div class="bc-bubble">' + safe + '</div>';
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
 
-    if (!name || !name.trim() || !msg || !msg.trim()) {
-      showMsg(msgEl, 'لطفاً نام و پیام را وارد کنید.', 'bc-err');
+  function updateServiceUi() {
+    var labelEl = document.getElementById('bc-service-label');
+    var warnEl = document.getElementById('bc-fallback-notice');
+    if (!labelEl || !warnEl) {
       return;
     }
 
-    btn.disabled    = true;
-    btn.textContent = 'در حال ارسال…';
+    labelEl.textContent = serviceLabel();
+    var showWarn = cfg.primaryService !== 'telegram' && baleAvailable === false;
+    warnEl.className = 'bc-warn' + (showWarn ? ' bc-show' : '');
+  }
 
-    fetch(cfg.ajaxUrl || '', {
-      method:  'POST',
-      body:    new FormData(form),
-      headers: { 'X-Requested-With': 'XMLHttpRequest' },
+  function submitMessage(form, logEl, sendBtn) {
+    var name = (form.elements.name || {}).value || '';
+    var msg = (form.elements.message || {}).value || '';
+    var email = (form.elements.email || {}).value || '';
+
+    if (!name.trim() || !msg.trim()) {
+      addBubble(logEl, 'bot', 'لطفاً نام و پیام را کامل وارد کنید.');
+      return;
+    }
+
+    addBubble(logEl, 'user', msg.trim());
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = 'در حال ارسال...';
+
+    var body = new FormData();
+    body.append('name', name);
+    body.append('email', email);
+    body.append('message', msg);
+
+    var tokenField = cfg.token || '';
+    if (tokenField) {
+      body.append(tokenField, '1');
+    }
+
+    fetch(cfg.ajaxUrl || 'index.php?option=com_ajax&plugin=bale_chat&group=system&format=json', {
+      method: 'POST',
+      body: body,
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
       .then(function (r) { return r.json(); })
       .then(function (data) {
         var res = (data && data.data && data.data[0]) ? data.data[0] : {};
-
         if (res.success) {
-          showMsg(msgEl, res.message || 'پیام ارسال شد.', 'bc-ok');
-          form.reset();
+          addBubble(logEl, 'bot', res.message || 'پیام شما با موفقیت ارسال شد.');
+          form.elements.message.value = '';
         } else {
-          showMsg(msgEl, res.message || 'خطا در ارسال پیام.', 'bc-err');
+          addBubble(logEl, 'bot', res.message || 'ارسال پیام ناموفق بود.');
         }
       })
       .catch(function () {
-        showMsg(msgEl, 'خطای شبکه. لطفاً دوباره امتحان کنید.', 'bc-err');
+        addBubble(logEl, 'bot', 'خطای شبکه. دوباره تلاش کنید.');
       })
       .finally(function () {
-        btn.disabled    = false;
-        btn.textContent = 'ارسال پیام';
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'ارسال پیام';
       });
   }
 
-  function showMsg(el, text, cls) {
-    if (!el) return;
-    el.className  = 'bc-msg ' + cls;
-    el.textContent = text;
-    clearTimeout(el._hideTimer);
-    el._hideTimer = setTimeout(function () { el.className = 'bc-msg'; }, 6000);
-  }
-
-  // ── bootstrap ─────────────────────────────────────────────────────────────
   function init() {
-    var container   = document.createElement('div');
-    container.id    = 'bale-chat-widget';
+    var container = document.createElement('div');
+    container.id = 'bale-chat-widget';
     container.innerHTML = buildHTML();
     document.body.appendChild(container);
 
-    var btn   = document.getElementById('bc-btn');
+    var btn = document.getElementById('bc-btn');
     var panel = document.getElementById('bc-panel');
     var close = document.getElementById('bc-close');
-    var form  = document.getElementById('bc-contact-form');
+    var form = document.getElementById('bc-form');
+    var logEl = document.getElementById('bc-log');
+    var sendBtn = document.getElementById('bc-send');
 
-    // Apply initial state (may change once checkBale resolves)
-    applyServiceState();
+    checkBaleReachability(updateServiceUi);
 
-    // Toggle panel visibility
     btn.addEventListener('click', function () {
       widgetOpen = !widgetOpen;
-      panel.className = 'bc-panel' + (widgetOpen ? ' bc-open' : '');
-      // Probe Bale on first open
-      if (widgetOpen && baleAvailable === null && cfg.primaryService !== 'telegram') {
-        checkBale();
-      }
+      panel.className = widgetOpen ? 'bc-panel bc-open' : 'bc-panel';
     });
 
     close.addEventListener('click', function () {
-      widgetOpen      = false;
+      widgetOpen = false;
       panel.className = 'bc-panel';
     });
 
-    // Close when clicking outside
     document.addEventListener('click', function (e) {
       if (widgetOpen && !container.contains(e.target)) {
-        widgetOpen      = false;
+        widgetOpen = false;
         panel.className = 'bc-panel';
       }
     });
 
-    // Tab clicks
-    container.querySelectorAll('.bc-tab').forEach(function (tab) {
-      tab.addEventListener('click', function () { switchTab(tab.dataset.tab); });
-    });
-
-    // Form submission
     if (form) {
       form.addEventListener('submit', function (e) {
         e.preventDefault();
-        submitForm(form);
+        submitMessage(form, logEl, sendBtn);
       });
-    }
-
-    // If Telegram is the primary service, no need to probe Bale
-    if (cfg.primaryService === 'telegram') {
-      baleAvailable = false;
-      applyServiceState();
     }
   }
 
