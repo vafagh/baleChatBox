@@ -115,16 +115,20 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
             0,
             100,
         );
-        $rawEmail = $input->post->get('email', '', 'string');
-        $email    = filter_var($rawEmail, FILTER_VALIDATE_EMAIL) ? $rawEmail : '';
+        $contactType = strtolower(trim((string) $input->post->get('contact_type', 'telegram', 'string')));
+        $contactId   = mb_substr(
+            trim(strip_tags((string) $input->post->get('contact_id', '', 'string'))),
+            0,
+            120,
+        );
         $message  = mb_substr(
             trim(strip_tags($input->post->get('message', '', 'string'))),
             0,
             2000,
         );
 
-        if ($name === '' || $message === '') {
-            $this->ajaxReturn($event, false, 'نام و پیام الزامی است.');
+        if ($name === '' || $message === '' || $contactId === '') {
+            $this->ajaxReturn($event, false, 'نام، شناسه تماس و پیام الزامی است.');
 
             return;
         }
@@ -145,9 +149,10 @@ final class BaleChat extends CMSPlugin implements SubscriberInterface
             return;
         }
 
-        $emailLine = $email !== '' ? "\n📧 *ایمیل:* " . $email : '';
+        $contactLabel = $contactType === 'bale' ? '🆔 بله ID' : '🆔 Telegram ID';
         $text      = "🌐 *پیام از وب‌سایت*\n"
-                   . "👤 *نام:* " . $name . $emailLine . "\n"
+               . "👤 *نام:* " . $name . "\n"
+               . $contactLabel . ': ' . $contactId . "\n"
                    . "💬 *پیام:*\n" . $message . "\n"
                    . "🔗 " . Uri::current();
 
