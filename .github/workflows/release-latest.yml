@@ -26,8 +26,8 @@ jobs:
 
       - name: Build ZIP
         run: |
-          cd plugin
-          zip -r "../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" bale_chat/
+          cd plugin/bale_chat
+          zip -r "../../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" .
 
       - name: Delete existing latest release (if any)
         run: gh release delete latest --yes 2>/dev/null || true

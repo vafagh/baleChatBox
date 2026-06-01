@@ -23,8 +23,8 @@ jobs:
 
       - name: Build ZIP
         run: |
-          cd plugin
-          zip -r "../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" bale_chat/
+          cd plugin/bale_chat
+          zip -r "../../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" .
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
