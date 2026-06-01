@@ -9,7 +9,7 @@
   <license>Custom Non-Commercial License; see LICENSE.txt</license>
   <authorEmail>contact@vafagh.dev</authorEmail>
   <authorUrl>https://github.com/vafagh</authorUrl>
-  <version>1.1.0</version>
+  <version>1.2.0</version>
   <description>Floating chat widget for Joomla — keeps your visitors connected to site admins even during Iran internet disruptions. Bale Messenger is accessible both inside and outside Iran; Telegram serves as fallback. Visitors submit their contact (Bale/Telegram/WhatsApp preference) via a secure AJAX form with CSRF and optional CAPTCHA; admin is notified via Bale or Telegram bot.</description>
 
   <files>

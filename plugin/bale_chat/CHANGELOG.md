@@ -3,6 +3,16 @@
 All notable changes to Bale ChatBox Widget will be documented in this file.
 Versioning: PATCH (bug fix), MINOR (new feature), MAJOR (breaking change or new Joomla major support).
 
+## [1.2.0] - 2026-06-01
+
+### Added
+- Joomla 6.x compatibility declared in manifest
+- Auto-update server: Joomla sites are now notified of new versions automatically
+- Update server URL registered in plugin manifest
+
+### Fixed
+- `infourl` in update manifest now points to `releases/latest` instead of a version-pinned tag
+
 ## [1.1.0] - 2026-06-01
 
 ### Changed
