@@ -1,0 +1,56 @@
+name: Latest Build
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  latest:
+    name: Update Latest Pre-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest
+        id: vars
+        run: |
+          VERSION=$(grep -oP '(?<=<version>)[^<]+' plugin/bale_chat/bale_chat.xml | head -1)
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+
+      - name: Build ZIP
+        run: |
+          cd plugin
+          zip -r "../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" bale_chat/
+
+      - name: Delete existing latest release (if any)
+        run: gh release delete latest --yes 2>/dev/null || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete existing latest tag (if any)
+        run: git push origin :refs/tags/latest 2>/dev/null || true
+
+      - name: Create Latest Pre-release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: "Latest Build (v${{ steps.vars.outputs.VERSION }})"
+          body: |
+            **This is an automated pre-release built from the latest `master` commit.**
+
+            > For stable releases see the [tagged releases](https://github.com/vafagh/baleChatBox/releases?q=v&expanded=true).
+
+            ## Installation
+            1. Download `plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip`
+            2. Joomla Admin → Extensions → Manage → Extensions → Upload
+            3. Enable and configure the plugin
+          files: "plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip"
+          draft: false
+          prerelease: true

@@ -16,13 +16,31 @@ so Iranian visitors can still reach the site admin by providing their Bale, Tele
 or WhatsApp contact details through a secure AJAX form.
 The admin is then notified instantly via their **Bale or Telegram bot**.
 
+### The Abroad Visitor Problem
+
+Bale Messenger requires an **Iranian phone number** to register.
+Visitors located **outside Iran** cannot create a Bale account.
+
+This widget solves that: **no Bale account is needed to use it.**
+The visitor simply fills in a form and submits their preferred contact details
+(Bale ID, Telegram, or WhatsApp). No app installation or registration required on their side.
+
+### One-Way Channel
+
+The widget creates a **one-way notification channel**:
+
+```
+Visitor (abroad) ──submits form──▶ Admin bot notification (Iran)
+```
+
+The site admin inside Iran receives the visitor's contact details and message.
+The admin is then **responsible for following up** — by calling, messaging, or
+reaching out through whatever channel is available between Iran and the visitor's location.
+The plugin itself does not provide a reply mechanism.
+
 ---
 
 ![Joomla](https://img.shields.io/badge/Joomla-4%2B-blue)
-![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple)
-![Version](https://img.shields.io/badge/version-1.1.0-green)
-![License](https://img.shields.io/badge/License-Non--Commercial-red)
-![Languages](https://img.shields.io/badge/Languages-3-lightblue)
 ![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple)
 ![Version](https://img.shields.io/badge/version-1.1.0-green)
 ![License](https://img.shields.io/badge/License-Non--Commercial-red)
