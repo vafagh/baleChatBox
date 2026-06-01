@@ -268,7 +268,8 @@
             } else if (contactType === 'telegram' && !normalizedCid.includes('+')) {
               handlerUrl = 'https://t.me/' + normalizedCid;
             } else if (contactType === 'whatsapp') {
-              handlerUrl = 'https://wa.me/' + normalizedCid.replace(/\D/g, '');
+              var waDigits = normalizedCid.replace(/\D/g, '');
+              if (waDigits) { handlerUrl = 'https://wa.me/' + waDigits; }
             }
           }
           var typeLabel = {bale: '📱 بله', telegram: '✈️ تلگرام', whatsapp: '💬 واتساپ'}[contactType] || '📱';
