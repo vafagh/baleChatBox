@@ -5,27 +5,36 @@
 ![PHP](https://img.shields.io/badge/php-8.0%2B-purple)
 ![License](https://img.shields.io/badge/license-GPL%202.0-green)
 
-A modern, production-ready Joomla system plugin that injects a floating chat widget supporting **Bale Messenger** with automatic **Telegram** fallback. Includes AJAX-powered contact form with CSRF protection.
+A modern, production-ready Joomla system plugin that injects a floating chat widget for visitor contact. Supports **Bale Messenger**, **Telegram**, and **WhatsApp**. Includes AJAX-powered contact form with CSRF protection and optional CAPTCHA.
 
 ## Features
 
-✅ **Dual Service Support**
-- Primary: Bale Messenger (tapi.bale.ai)
-- Fallback: Telegram Bot API (configurable timeout)
+✅ **Multi-Service Contact Form**
+- Visitor selects: Bale / Telegram / WhatsApp
+- Collects name, contact ID, email, phone, message, optional file attachment
+- Requires at least 2 contact methods (reduces spam)
 
-✅ **Smart Availability Detection**
-- Automatic fallback to Telegram if Bale unavailable
-- Configurable timeout (1-10 seconds)
+✅ **Bot Notification**
+- Sends visitor message to admin via Bale or Telegram bot
+- Automatic fallback: tries Bale first, falls back to Telegram
 
-✅ **AJAX Contact Form**
-- No page reload required
-- CSRF token protection
-- Server-side input validation & sanitization
+✅ **Security**
+- CSRF token validation on every submission
+- Optional CAPTCHA: Cloudflare Turnstile or Google reCAPTCHA v2
+- Server-side input validation and sanitization
+
+✅ **UX**
+- Success card replaces form after submission (no stale fields visible)
+- "ارسال پیام دیگری" button to reset and send again
+- Confirmation message shows each contact method on its own line
 
 ✅ **Multi-language Support**
 - English (en-GB)
 - Persian/Farsi (fa-IR)
 - Kurdish-Sorani (ckb-IR)
+
+✅ **Admin Test Panel**
+- Test bot connectivity and form submission from plugin edit page
 
 ## Installation
 
@@ -33,18 +42,20 @@ A modern, production-ready Joomla system plugin that injects a floating chat wid
 2. Joomla Admin → **System** → **Manage** → **Extensions** → **Upload**
 3. Select the ZIP file
 4. Go to **Extensions** → **Plugins**
-5. Find "Bale ChatBox Widget" → Click to configure
+5. Find "Bale ChatBox Widget" → Click to configure and enable
 
 ## Configuration
 
 | Setting | Description |
 |---------|-------------|
-| **Bale Bot Username** | Your Bale support bot username |
-| **Telegram Bot Username** | Your Telegram bot username |
+| **Bale Bot Token** | Your Bale bot API token |
+| **Bale Chat ID** | Admin chat/group ID to receive messages |
+| **Telegram Bot Token** | Your Telegram bot API token |
+| **Telegram Chat ID** | Admin chat/group ID to receive messages |
 | **Button Color** | Widget button color (hex code) |
-| **Welcome Message** | Message when widget opens |
+| **Welcome Message** | Message shown when widget opens |
 | **Widget Position** | bottom-left or bottom-right |
-| **Fallback Timeout** | Milliseconds before Telegram fallback (1000-10000) |
+| **Captcha Provider** | none / turnstile / recaptcha |
 
 ## License
 
