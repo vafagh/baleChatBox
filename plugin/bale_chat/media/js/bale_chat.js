@@ -110,6 +110,13 @@
         '.bc-success-sub{font-size:12px;color:#666;line-height:1.65;margin-bottom:18px}' +
         '.bc-send-another{border:1px solid #d9d9d9;border-radius:10px;padding:9px 22px;background:#fff;font-size:13px;color:#555;cursor:pointer;transition:border-color .15s,color .15s}' +
         '.bc-send-another:hover{border-color:' + color + ';color:' + color + '}' +
+        '.bc-privacy-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center}' +
+        '.bc-privacy-box{background:#fff;border-radius:14px;padding:22px 20px;max-width:340px;width:90%;font-family:inherit;font-size:13px;line-height:1.6;color:#222;direction:ltr}' +
+        '.bc-privacy-box h3{margin:0 0 10px;font-size:14px;color:#b91c1c;display:flex;align-items:center;gap:6px}' +
+        '.bc-privacy-box p{margin:0 0 16px}' +
+        '.bc-privacy-actions{display:flex;gap:10px;justify-content:flex-end}' +
+        '.bc-privacy-cancel{padding:8px 16px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:13px;color:#555}' +
+        '.bc-privacy-confirm{padding:8px 16px;border:none;border-radius:8px;background:#0088cc;color:#fff;cursor:pointer;font-size:13px}' +
       '</style>' +
 
       '<button id="bc-btn" aria-label="پشتیبانی آنلاین">' +
@@ -170,6 +177,30 @@
     }
   }
 
+  function showPrivacyModal(onConfirm) {
+    var overlay = document.createElement('div');
+    overlay.className = 'bc-privacy-overlay';
+    overlay.innerHTML =
+      '<div class="bc-privacy-box">' +
+        '<h3>&#x1F512; Privacy Notice</h3>' +
+        '<p>By submitting this form, your message and contact details will be routed through the Bale Messenger network to reach the administrator. ' +
+        'This network operates under domestic Iranian data regulations and does not use end-to-end encryption. ' +
+        'Please do not share highly sensitive or confidential information.</p>' +
+        '<div class="bc-privacy-actions">' +
+          '<button class="bc-privacy-cancel" type="button">انصراف</button>' +
+          '<button class="bc-privacy-confirm" type="button">متوجه شدم، ادامه می‌دهم</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    overlay.querySelector('.bc-privacy-cancel').addEventListener('click', function () {
+      overlay.remove();
+    });
+    overlay.querySelector('.bc-privacy-confirm').addEventListener('click', function () {
+      overlay.remove();
+      onConfirm();
+    });
+  }
+
   function submitMessage(form, logEl, sendBtn) {
     var name = (form.elements.name || {}).value || '';
     var msg = (form.elements.message || {}).value || '';
@@ -202,6 +233,16 @@
         return;
       }
     }
+
+    // Show privacy notice once before sending via Bale network
+    if (contactType === 'bale' && !form._bcPrivacyAck) {
+      showPrivacyModal(function () {
+        form._bcPrivacyAck = true;
+        form.dispatchEvent(new Event('submit'));
+      });
+      return;
+    }
+    form._bcPrivacyAck = false; // reset for next submission
 
     var userRow = addBubble(logEl, 'user', msg.trim(), 'sending');
 

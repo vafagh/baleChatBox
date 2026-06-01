@@ -124,6 +124,32 @@ plugin/bale_chat/
 - Minimum 2 contact methods required (reduces spam)
 - HTTPS-only API calls to Bale/Telegram
 
+## 🔒 Security & Privacy Disclosure
+
+Because this plugin routes visitor data through Bale Messenger (a domestic Iranian platform
+connected to the National Bank of Iran), administrators must be aware of the following.
+
+### 1. Data Transmission & Monitoring
+- **No End-to-End Encryption (E2EE):** Cybersecurity audits (including by the Open Technology Fund) confirm Bale does not use E2EE. Visitor messages and contact details sent via your bot are visible to Bale's backend servers.
+- **URL Monitoring:** Links transmitted through the bot are redirected via Bale's own servers, enabling them to log and monitor accessed addresses.
+
+### 2. Government Surveillance Risk
+- **State-Supported Platform:** Bale operates under domestic Iranian regulations that permit monitoring of communications for "security and anti-fraud purposes."
+- **Censorship Risk:** Messages containing specific keywords, political content, or references to restricted external platforms may be automatically filtered or flagged.
+
+### 3. GDPR & Privacy Obligations
+- **PII Handling:** Visitors submit personally identifiable information (Telegram handles, WhatsApp numbers, phone numbers) through this form.
+- **Cross-Border Data Transfer:** Routing user data from a site hosted outside Iran into Iranian messaging infrastructure may conflict with GDPR or other international privacy laws without explicit visitor consent.
+- **Built-in Notice:** This plugin shows a pop-up privacy notice to visitors who select Bale as their contact channel before submitting the form.
+
+### 4. Financial System Overlap
+Bale also operates as a banking application tightly integrated with Iranian financial infrastructure. All Bale accounts are linked to an Iranian national ID and SIM card.
+
+### 💡 Admin Best Practices
+- **Use a dedicated bot account** — never your personal Bale credentials.
+- **Do not collect sensitive data** (passwords, financial info) — treat the channel as unencrypted text.
+- **Review Joomla logs** — ensure AJAX submissions are not permanently stored if only used as a real-time router.
+
 ## Versioning
 
 - `1.0.x` — bug fixes
