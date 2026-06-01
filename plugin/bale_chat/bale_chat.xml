@@ -69,6 +69,11 @@
     <language tag="ckb-IR">ckb-IR/plg_system_bale_chat.sys.ini</language>
   </languages>
 
+  <targetplatform name="joomla" version="4.*"/>
+  <targetplatform name="joomla" version="5.*"/>
+  <targetplatform name="joomla" version="6.*"/>
+  <php_minimum>8.0</php_minimum>
+
   <changelog>
     <change date="2024-04-01" version="1.0.0">
       <item>Initial release</item>
