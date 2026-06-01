@@ -1,32 +1,49 @@
 ﻿# Bale ChatBox Widget
 
-**📖 Documentation Languages:**
-- **English** (Current)
-- **[فارسی](plugin/bale_chat/language/fa-IR/README.md)** (Persian/Farsi)
-- **[کوردی](plugin/bale_chat/language/ckb-IR/README.md)** (Kurdish-Sorani)
+**Documentation Language:** [English] | [Persian](plugin/bale_chat/language/fa-IR/README.md) | [Kurdish](plugin/bale_chat/language/ckb-IR/README.md)
 
-A professional Joomla 4+ system plugin that adds a floating chat widget for visitor contact. Supports **Bale Messenger**, **Telegram**, and **WhatsApp** with AJAX form, CSRF protection, and optional CAPTCHA.
+---
+
+## Why This Plugin Exists
+
+Iran experiences recurring internet disruptions and filtering of many services.
+**Bale Messenger** is an Iranian messaging platform accessible **both inside and outside Iran**,
+making it ideal for maintaining contact between Iranian users and website admins
+when other channels are blocked.
+
+This plugin lets any **Joomla site hosted outside Iran** embed a floating chat widget
+so Iranian visitors can still reach the site admin by providing their Bale, Telegram,
+or WhatsApp contact details through a secure AJAX form.
+The admin is then notified instantly via their **Bale or Telegram bot**.
+
+---
 
 ![Joomla](https://img.shields.io/badge/Joomla-4%2B-blue)
 ![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple)
-![License](https://img.shields.io/badge/License-GPL%202.0-green)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+![License](https://img.shields.io/badge/License-Non--Commercial-red)
+![Languages](https://img.shields.io/badge/Languages-3-lightblue)
+![PHP](https://img.shields.io/badge/PHP-8.0%2B-purple)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+![License](https://img.shields.io/badge/License-Non--Commercial-red)
 ![Languages](https://img.shields.io/badge/Languages-3-lightblue)
 
 ## Features
 
-- **Floating Chat Button** — Fixed position widget visible on all pages
-- **Multi-Service Form** — Visitor selects Bale / Telegram / WhatsApp as preferred contact
-- **Bot Notification** — Sends visitor message to admin via Bale bot (Telegram fallback)
-- **CAPTCHA Support** — Cloudflare Turnstile or Google reCAPTCHA v2 (configurable)
-- **CSRF Protection** — Token validated on every submission
-- **File Attachment** — Optional image/PDF/document upload
-- **Success UX** — Form replaced by success card after sending; "send another" resets it
-- **Admin Test Panel** — Test bot and form directly from plugin settings
+- **Floating Chat Button** — Fixed-position widget on all pages
+- **Visitor Contact Form** — Visitor picks Bale / Telegram / WhatsApp as their preferred reply channel
+- **Bot Notification** — Admin receives message via **Bale bot** (Telegram as automatic fallback)
+- **WhatsApp**: visitor contact *preference* only — no WhatsApp Bot API; admin follows up manually
+- **CAPTCHA** — Cloudflare Turnstile or Google reCAPTCHA v2 (optional)
+- **CSRF Protection** — Joomla token validated on every submission
+- **File Attachment** — Optional image/PDF upload with form
+- **Success UX** — Form replaced by success card after sending
+- **Admin Test Panel** — Test bot and form from plugin settings
 - **Multi-Language** — English, Persian/Farsi, Kurdish-Sorani with full RTL support
 
 ## Quick Installation
 
-1. Download `plg_system_bale_chat_1.0.0.zip`
+1. Download from [Releases](https://github.com/vafagh/baleChatBox/releases) (e.g. `plg_system_bale_chat_1.1.0.zip`)
 2. Joomla Admin → **Extensions → Manage → Extensions → Upload**
 3. Upload the ZIP file
 4. **Extensions → Plugins** → Find "Bale ChatBox Widget" → Enable and configure
@@ -67,7 +84,7 @@ plugin/bale_chat/
 ├── bale_chat.xml              Joomla manifest
 ├── README.md                  Plugin documentation
 ├── CHANGELOG.md               Version history
-├── LICENSE.txt                GPL 2.0 license
+├── LICENSE.txt                Non-commercial license
 ├── src/
 │   └── BaleChat.php           Main plugin logic (events, AJAX, bot API)
 ├── media/
@@ -89,15 +106,28 @@ plugin/bale_chat/
 - Minimum 2 contact methods required (reduces spam)
 - HTTPS-only API calls to Bale/Telegram
 
-## Building & Deploying
+## Versioning
+
+- `1.0.x` — bug fixes
+- `1.x.0` — new features
+- `x.0.0` — major changes or new Joomla major version support
+
+GitHub Actions auto-builds a ZIP and publishes a Release on every version tag:
+
+```bash
+git tag -a v1.1.0 -m "Release 1.1.0"
+git push origin v1.1.0
+```
+
+## Building & Deploying Locally
 
 ```powershell
 # Build zip
 python build-plugin.py
 
 # Deploy
-scp plg_system_bale_chat_1.0.0.zip root@server:/tmp/
-ssh root@server "cd /var/www/site/public_html && unzip -o /tmp/plg_system_bale_chat_1.0.0.zip -d /tmp/d && rsync -a /tmp/d/ plugins/system/bale_chat/ && chown -R www-data:www-data plugins/system/bale_chat && rm -rf /tmp/d"
+scp plg_system_bale_chat_1.1.0.zip root@server:/tmp/
+ssh root@server "cd /var/www/site/public_html && unzip -o /tmp/plg_system_bale_chat_1.1.0.zip -d /tmp/d && rsync -a /tmp/d/ plugins/system/bale_chat/ && chown -R www-data:www-data plugins/system/bale_chat && rm -rf /tmp/d"
 ```
 
 ## Translations
@@ -110,11 +140,15 @@ ssh root@server "cd /var/www/site/public_html && unzip -o /tmp/plg_system_bale_c
 
 ## License
 
-GNU General Public License v2.0 — See [LICENSE.txt](plugin/bale_chat/LICENSE.txt)
+Custom Non-Commercial License — See [LICENSE.txt](plugin/bale_chat/LICENSE.txt)
+
+Free for personal and non-commercial use with attribution.
+**Commercial use requires written permission from the author.**
+
+Copyright (C) 2024-2026 Vafa Ghoreyshi. All rights reserved.
 
 ## Links
 
-- **GitHub**: https://github.com/vafagh/baleChatBox
-- **Bale Messenger**: https://bale.ai
-- **Telegram**: https://telegram.org
-- **Joomla**: https://www.joomla.org
+- GitHub: https://github.com/vafagh/baleChatBox
+- Bale Messenger: https://bale.ai
+- Telegram: https://telegram.org

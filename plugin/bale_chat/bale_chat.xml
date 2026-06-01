@@ -1,23 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="plugin" group="system" method="upgrade">
+  <element>bale_chat</element>
+  <namespace path="src">Joomla\Plugin\System\BaleChat</namespace>
   <name>Bale ChatBox Widget</name>
   <author>Vafa</author>
   <creationDate>2024-04-01</creationDate>
   <copyright>Copyright (C) 2024. All rights reserved.</copyright>
-  <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+  <license>Custom Non-Commercial License; see LICENSE.txt</license>
   <authorEmail>contact@vafagh.dev</authorEmail>
   <authorUrl>https://github.com/vafagh</authorUrl>
-  <version>1.0.0</version>
-  <description>Injects a floating Bale Messenger and Telegram chat widget into Joomla frontend with AJAX contact form support</description>
+  <version>1.1.0</version>
+  <description>Floating chat widget for Joomla — keeps your visitors connected to site admins even during Iran internet disruptions. Bale Messenger is accessible both inside and outside Iran; Telegram serves as fallback. Visitors submit their contact (Bale/Telegram/WhatsApp preference) via a secure AJAX form with CSRF and optional CAPTCHA; admin is notified via Bale or Telegram bot.</description>
 
   <files>
-    <filename>bale_chat.xml</filename>
-    <filename>language/en-GB/plg_system_bale_chat.ini</filename>
-    <filename>language/en-GB/plg_system_bale_chat.sys.ini</filename>
-    <filename>language/fa-IR/plg_system_bale_chat.ini</filename>
-    <filename>language/fa-IR/plg_system_bale_chat.sys.ini</filename>
-    <filename>language/ckb-IR/plg_system_bale_chat.ini</filename>
-    <filename>language/ckb-IR/plg_system_bale_chat.sys.ini</filename>
     <folder>src</folder>
     <folder>media</folder>
     <folder>services</folder>
@@ -30,8 +25,30 @@
           <option value="bale">Bale Messenger</option>
           <option value="telegram">Telegram</option>
         </field>
+        <field name="captcha_provider" type="list" label="PLG_SYSTEM_BALE_CHAT_CAPTCHA_PROVIDER" description="PLG_SYSTEM_BALE_CHAT_CAPTCHA_PROVIDER_DESC" default="none">
+          <option value="none">Disabled</option>
+          <option value="recaptcha">Google reCAPTCHA v2</option>
+          <option value="turnstile">Cloudflare Turnstile</option>
+        </field>
+      </fieldset>
+      
+      <fieldset name="bale" label="PLG_SYSTEM_BALE_CHAT_BALE_SETTINGS">
+        <field name="bale_setup_note" type="note" heading="h4" label="PLG_SYSTEM_BALE_CHAT_BALE_SETUP_NOTE" description="PLG_SYSTEM_BALE_CHAT_BALE_SETUP_NOTE_DESC" />
         <field name="bale_bot_username" type="text" label="PLG_SYSTEM_BALE_CHAT_BALE_USERNAME" description="PLG_SYSTEM_BALE_CHAT_BALE_USERNAME_DESC" />
+        <field name="bale_bot_token" type="password" label="PLG_SYSTEM_BALE_CHAT_BALE_TOKEN" description="PLG_SYSTEM_BALE_CHAT_BALE_TOKEN_DESC" />
+        <field name="bale_chatid_note" type="note" heading="h4" label="PLG_SYSTEM_BALE_CHAT_BALE_CHATID_NOTE" description="PLG_SYSTEM_BALE_CHAT_BALE_CHATID_NOTE_DESC" class="alert alert-warning" />
+        <field name="bale_chat_id" type="text" label="PLG_SYSTEM_BALE_CHAT_BALE_CHAT_ID" description="PLG_SYSTEM_BALE_CHAT_BALE_CHAT_ID_DESC" />
+      </fieldset>
+
+      <fieldset name="telegram" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_SETTINGS">
+        <field name="telegram_setup_note" type="note" heading="h4" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_SETUP_NOTE" description="PLG_SYSTEM_BALE_CHAT_TELEGRAM_SETUP_NOTE_DESC" />
         <field name="telegram_bot_username" type="text" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_USERNAME" description="PLG_SYSTEM_BALE_CHAT_TELEGRAM_USERNAME_DESC" />
+        <field name="telegram_bot_token" type="password" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_TOKEN" description="PLG_SYSTEM_BALE_CHAT_TELEGRAM_TOKEN_DESC" />
+        <field name="telegram_chatid_note" type="note" heading="h4" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_CHATID_NOTE" description="PLG_SYSTEM_BALE_CHAT_TELEGRAM_CHATID_NOTE_DESC" class="alert alert-warning" />
+        <field name="telegram_chat_id" type="text" label="PLG_SYSTEM_BALE_CHAT_TELEGRAM_CHAT_ID" description="PLG_SYSTEM_BALE_CHAT_TELEGRAM_CHAT_ID_DESC" />
+      </fieldset>
+
+      <fieldset name="appearance" label="PLG_SYSTEM_BALE_CHAT_APPEARANCE">
         <field name="button_color" type="color" label="PLG_SYSTEM_BALE_CHAT_BUTTON_COLOR" description="PLG_SYSTEM_BALE_CHAT_BUTTON_COLOR_DESC" default="#0088cc" />
         <field name="welcome_message" type="textarea" label="PLG_SYSTEM_BALE_CHAT_WELCOME_MESSAGE" description="PLG_SYSTEM_BALE_CHAT_WELCOME_MESSAGE_DESC" default="سلام! چطور می‌توانم کمک کنم؟" rows="3" />
         <field name="widget_position" type="list" label="PLG_SYSTEM_BALE_CHAT_POSITION" description="PLG_SYSTEM_BALE_CHAT_POSITION_DESC" default="bottom-right">
@@ -52,8 +69,6 @@
     <language tag="ckb-IR">ckb-IR/plg_system_bale_chat.sys.ini</language>
   </languages>
 
-  <scriptfile>services/installer.php</scriptfile>
-
   <changelog>
     <change date="2024-04-01" version="1.0.0">
       <item>Initial release</item>
@@ -63,8 +78,4 @@
       <item>Multi-language support: English, Persian, Kurdish-Sorani</item>
     </change>
   </changelog>
-
-  <updateservers>
-    <server type="extension" priority="1" name="Bale ChatBox Updates">https://raw.githubusercontent.com/vafagh/baleChatBox/master/updates.xml</server>
-  </updateservers>
 </extension>

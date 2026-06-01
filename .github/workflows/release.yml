@@ -1,0 +1,40 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: vars
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build ZIP
+        run: |
+          cd plugin
+          zip -r "../plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip" bale_chat/
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: "Bale ChatBox Widget v${{ steps.vars.outputs.VERSION }}"
+          body: |
+            ## Installation
+            1. Download `plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip`
+            2. Joomla Admin → Extensions → Manage → Extensions → Upload
+            3. Enable and configure the plugin
+
+            See [CHANGELOG](https://github.com/vafagh/baleChatBox/blob/master/plugin/bale_chat/CHANGELOG.md) for details.
+          files: "plg_system_bale_chat_${{ steps.vars.outputs.VERSION }}.zip"
+          draft: false
+          prerelease: false

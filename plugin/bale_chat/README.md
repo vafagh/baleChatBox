@@ -1,40 +1,25 @@
 # Bale ChatBox Widget - Joomla Plugin
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
 ![Joomla](https://img.shields.io/badge/joomla-4%2B-orange)
 ![PHP](https://img.shields.io/badge/php-8.0%2B-purple)
-![License](https://img.shields.io/badge/license-GPL%202.0-green)
+![License](https://img.shields.io/badge/license-Non--Commercial-red)
 
-A modern, production-ready Joomla system plugin that injects a floating chat widget for visitor contact. Supports **Bale Messenger**, **Telegram**, and **WhatsApp**. Includes AJAX-powered contact form with CSRF protection and optional CAPTCHA.
+Floating chat widget for Joomla — keeps visitors connected to site admins
+even during Iran internet disruptions. Bale Messenger is accessible both inside
+and outside Iran. Visitors submit their contact info; admin is notified via Bale
+or Telegram bot.
 
 ## Features
 
-✅ **Multi-Service Contact Form**
-- Visitor selects: Bale / Telegram / WhatsApp
-- Collects name, contact ID, email, phone, message, optional file attachment
-- Requires at least 2 contact methods (reduces spam)
-
-✅ **Bot Notification**
-- Sends visitor message to admin via Bale or Telegram bot
-- Automatic fallback: tries Bale first, falls back to Telegram
-
-✅ **Security**
-- CSRF token validation on every submission
-- Optional CAPTCHA: Cloudflare Turnstile or Google reCAPTCHA v2
-- Server-side input validation and sanitization
-
-✅ **UX**
-- Success card replaces form after submission (no stale fields visible)
-- "ارسال پیام دیگری" button to reset and send again
-- Confirmation message shows each contact method on its own line
-
-✅ **Multi-language Support**
-- English (en-GB)
-- Persian/Farsi (fa-IR)
-- Kurdish-Sorani (ckb-IR)
-
-✅ **Admin Test Panel**
-- Test bot connectivity and form submission from plugin edit page
+- **Multi-Service Contact Form** — Visitor picks Bale / Telegram / WhatsApp as preferred reply channel
+- **Bot Notification** — Admin notified via Bale bot (Telegram as fallback)
+- **WhatsApp**: visitor contact *preference* only — no WhatsApp Bot API; admin follows up manually
+- **CAPTCHA** — Cloudflare Turnstile or Google reCAPTCHA v2 (optional)
+- **CSRF Protection** — Token validated on every submission
+- **Success UX** — Form replaced by a success card after sending
+- **Admin Test Panel** — Test bot and form from plugin settings
+- **Multi-language** — English, Persian/Farsi, Kurdish-Sorani (full RTL)
 
 ## Installation
 
@@ -59,8 +44,13 @@ A modern, production-ready Joomla system plugin that injects a floating chat wid
 
 ## License
 
-GNU General Public License v2.0 - See LICENSE.txt
+Custom Non-Commercial License — See LICENSE.txt
+
+Free for personal and non-commercial use with attribution.
+Commercial use requires written permission from the author.
+
+Copyright (C) 2024-2026 Vafa Ghoreyshi. All rights reserved.
 
 ## Author
 
-Vafa - https://github.com/vafagh
+Vafa Ghoreyshi — https://github.com/vafagh
