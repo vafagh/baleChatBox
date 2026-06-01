@@ -47,6 +47,7 @@ def update_updates_xml(version, repo_root):
     <element>bale_chat</element>
     <type>plugin</type>
     <folder>system</folder>
+    <client>site</client>
     <version>{version}</version>
     <infourl title="Release Notes">https://github.com/vafagh/baleChatBox/releases/latest</infourl>
     <downloads>

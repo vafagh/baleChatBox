@@ -18,6 +18,7 @@
     <element>bale_chat</element>
     <type>plugin</type>
     <folder>system</folder>
+    <client>site</client>
     <version>1.2.0</version>
     <infourl title="Release Notes">https://github.com/vafagh/baleChatBox/releases/latest</infourl>
     <downloads>
